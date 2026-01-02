@@ -123,18 +123,6 @@ const requireAuth = (req, res, next) => {
             res.json({ success: true, message: 'Blood donor registered successfully' });
         } catch (err) {
             console.error("Add Donor Error:", err);
-            res.status(500).json({ error: err.message });
-        }
-    });
-
-    // Delete blood donor
-    app.delete('/api/blood-donors/:id', requireAuth, async (req, res) => {
-        const id = req.params.id;
-        try {
-            const result = await db.execute({
-                sql: "DELETE FROM blood_donors WHERE id = ?",
-                args: [id]
-            });
             args: [name, blood_group, phone, location, last_donation_date, age]
         });
     // LibSQL doesn't directly return lastID like sqlite3.
