@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Donors - Madaripur Doctor Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="index.html" class="logo">
+                <i class="ph-fill ph-heart-beat icon-logo"></i>
+                <span>Madaripur<span class="text-primary">Blood</span></span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" class="nav-link active">Home</a>
+                <a href="#donors" class="nav-link">Find Donors</a>
+                <a href="javascript:void(0)" onclick="openRegisterModal()" class="nav-link">Register</a>
+                <button onclick="toggleTheme()" class="btn btn-outline"
+                    style="padding: 0.5rem; display: flex; align-items: center; justify-content: center; border-radius: 50%; width: 40px; height: 40px;">
+                    <i id="themeIcon" class="ph-fill ph-moon"></i>
+                </button>
+            </div>
+            <div class="mobile-toggle" onclick="toggleMenu()">
+                <i class="ph ph-list"></i>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="container hero-container">
+            <div class="hero-text">
+                <h1>Find Life-Saving Blood Donors</h1>
+                <p>Connect with voluntary blood donors in Madaripur. Every drop counts.</p>
+
+                <div class="search-box">
+                    <div class="input-group">
+                        <i class="ph ph-drop text-primary"></i>
+                        <select id="bloodGroupFilter">
+                            <option value="">All Blood Groups</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <i class="ph ph-map-pin text-primary"></i>
+                        <input type="text" id="locationFilter" placeholder="Search by location...">
+                    </div>
+                    <button class="btn btn-primary" onclick="searchDonors()">Search</button>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img id="heroImage" src="images/hero.png" alt="Blood Donation"
+                    style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+        </div>
+    </header>
+
+    <section class="section" id="donors">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Available Donors</h2>
+                <button class="btn btn-primary" onclick="openRegisterModal()">
+                    <i class="ph ph-plus"></i> Register as Donor
+                </button>
+            </div>
+            <div id="statsContainer" class="stats-container">
+                <!-- Stats will be loaded here -->
+            </div>
+            <div id="donorsGrid" class="donors-grid">
+                <!-- Donors will be loaded here -->
+            </div>
+            <div id="pagination" class="pagination"></div>
+        </div>
+    </section>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeRegisterModal()">&times;</span>
+            <div class="modal-header">
+                <h2>Register as Blood Donor</h2>
+            </div>
+            <form id="registerForm" onsubmit="handleRegister(event)">
+                <div class="modal-info-grid">
+                    <div class="info-item">
+                        <i class="ph ph-user info-icon"></i>
+                        <input type="text" name="name" class="modal-input" placeholder="Full Name" required>
+                    </div>
+                    <div class="info-item">
+                        <i class="ph ph-cake info-icon"></i>
+                        <input type="number" name="age" class="modal-input" placeholder="Age" min="18" max="65"
+                            required>
+                    </div>
+                    <div class="info-item">
+                        <i class="ph ph-users info-icon"></i>
+                        <select name="blood_group" class="modal-input" required>
+                            <option value="" disabled selected>Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+                    <div class="info-item">
+                        <i class="ph ph-phone info-icon"></i>
+                        <input type="tel" name="phone" class="modal-input" placeholder="Phone Number" required>
+                    </div>
+                    <div class="info-item">
+                        <i class="ph ph-map-pin info-icon"></i>
+                        <input type="text" name="location" class="modal-input" placeholder="Location/Area" required>
+                    </div>
+                    <div class="info-item">
+                        <i class="ph ph-calendar info-icon"></i>
+                        <div style="width: 100%;">
+                            <label for="last_donation_date"
+                                style="font-size: 0.8rem; color: #666; display: block; margin-bottom: 2px;">Last
+                                Donation Date</label>
+                            <input type="date" id="last_donation_date" name="last_donation_date" class="modal-input">
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem;">Submit
+                    Registration</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Donor Details Modal -->
+    <div id="donorDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeDetailsModal()">&times;</span>
+            <div class="modal-header">
+                <h2>Donor Details</h2>
+            </div>
+            <div id="donorDetailsContent" class="modal-info-grid">
+                <!-- Content injected via JS -->
+            </div>
+            <div class="modal-actions" style="margin-top: 1.5rem;">
+                <a id="modalCallBtn" href="#" class="btn btn-primary"
+                    style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                    <i class="ph-fill ph-phone"></i> Call Donor
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>MadaripurBlood</h3>
+                    <p>Your trusted healthcare companion in Madaripur district.</p>
+                </div>
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="index.html#donors">Find Donors</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Contact</h3>
+                    <p><i class="ph ph-phone"></i> +880 1700 000000</p>
+                    <p><i class="ph ph-envelope"></i> info@madaripurhealth.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 MadaripurHealth. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
