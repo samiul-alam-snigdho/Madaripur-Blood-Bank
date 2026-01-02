@@ -23,108 +23,104 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Middleware to check auth
 const requireAuth = (req, res, next) => {
-    if (req.session.userId) {
-        if (req.session.admin) { // Changed to check for req.session.admin
-            next();
+    if (req.session.admin) {
+        next();
+    } else {
+        res.status(401).json({ error: 'Unauthorized' });
+    }
+};
+
+// --- AUTH API ---
+
+// 1. Admin Login
+app.post('/admin/login', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        const result = await db.execute({
+            sql: "SELECT * FROM admins WHERE username = ? AND password = ?",
+            args: [username, password]
+        });
+
+        if (result.rows.length > 0) {
+            req.session.admin = true;
+            res.json({ success: true });
         } else {
-            res.status(401).json({ error: 'Unauthorized' });
+            res.json({ success: false });
         }
-    };
+    } catch (err) {
+        console.error("Login Error:", err);
+        res.status(500).json({ error: "Database error" });
+    }
+});
 
-    // --- AUTH API ---
+app.post('/api/logout', (req, res) => {
+    req.session.destroy();
+    res.json({ message: 'Logged out' });
+});
 
-    // 1. Admin Login
-    app.post('/admin/login', async (req, res) => {
-        const { username, password } = req.body;
-        try {
-            const result = await db.execute({
-                sql: "SELECT * FROM admins WHERE username = ? AND password = ?",
-                args: [username, password]
-            });
+app.get('/api/check-auth', (req, res) => {
+    if (req.session.admin) {
+        res.json({ authenticated: true });
+    } else {
+        res.json({ authenticated: false });
+    }
+});
 
-            if (result.rows.length > 0) {
-                req.session.admin = true;
-                res.json({ success: true });
-            } else {
-                res.json({ success: false });
-            }
-        } catch (err) {
-            console.error("Login Error:", err);
-            res.status(500).json({ error: "Database error" });
-        }
-    });
+// --- BLOOD DONOR API ---
 
-    app.post('/api/logout', (req, res) => {
-        req.session.destroy();
-        res.json({ message: 'Logged out' });
-    });
+// Get all blood donors (with optional sorting)
+app.get('/api/blood-donors', async (req, res) => {
+    const { blood_group, location } = req.query;
+    let query = "SELECT * FROM blood_donors";
+    let params = [];
+    let conditions = [];
 
-    app.get('/api/check-auth', (req, res) => {
-        if (req.session.admin) { // Changed to check for req.session.admin
-            res.json({ authenticated: true }); // Removed username as it's not stored in session.admin
-        } else {
-            res.json({ authenticated: false });
-        }
-    });
+    if (blood_group) {
+        conditions.push("blood_group = ?");
+        params.push(blood_group);
+    }
+    if (location) {
+        conditions.push("location LIKE ?");
+        params.push(`%${location}%`);
+    }
 
-    // --- BLOOD DONOR API ---
+    if (conditions.length > 0) {
+        query += " WHERE " + conditions.join(" AND ");
+    }
 
-    // Get all blood donors (with optional sorting)
-    app.get('/api/blood-donors', async (req, res) => {
-        const { blood_group, location } = req.query;
-        let query = "SELECT * FROM blood_donors";
-        let params = [];
-        let conditions = [];
+    query += " ORDER BY name COLLATE NOCASE ASC";
 
-        if (blood_group) {
-            conditions.push("blood_group = ?");
-            params.push(blood_group);
-        }
-        if (location) {
-            conditions.push("location LIKE ?");
-            params.push(`%${location}%`);
-        }
+    try {
+        const result = await db.execute({
+            sql: query,
+            args: params
+        });
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Fetch Donors Error:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
 
-        if (conditions.length > 0) {
-            query += " WHERE " + conditions.join(" AND ");
-        }
+// Add a new blood donor
+app.post('/api/blood-donors', async (req, res) => {
+    const { name, blood_group, phone, location, last_donation_date, age } = req.body;
 
-        query += " ORDER BY name COLLATE NOCASE ASC"; // Keep original sorting logic
+    if (!name || !blood_group || !phone || !location) {
+        return res.status(400).json({ error: "All fields are required" });
+    }
 
-        try {
-            const result = await db.execute({
-                sql: query,
-                args: params
-            });
-            res.json(result.rows);
-        } catch (err) {
-            console.error("Fetch Donors Error:", err);
-            res.status(500).json({ error: err.message });
-        }
-    });
-
-    // Add a new blood donor
-    app.post('/api/blood-donors', async (req, res) => {
-        const { name, blood_group, phone, location, last_donation_date, age } = req.body;
-
-        if (!name || !blood_group || !phone || !location) {
-            return res.status(400).json({ error: "All fields are required" });
-        }
-
-        try {
-            await db.execute({
-                sql: `INSERT INTO blood_donors (name, blood_group, phone, location, last_donation_date, age)
-                      VALUES (?, ?, ?, ?, ?, ?)`,
-                args: [name, blood_group, phone, location, last_donation_date, age]
-            });
-            res.json({ success: true, message: 'Blood donor registered successfully' });
+    try {
+        await db.execute({
+            sql: `INSERT INTO blood_donors (name, blood_group, phone, location, last_donation_date, age)
+                  VALUES (?, ?, ?, ?, ?, ?)`,
             args: [name, blood_group, phone, location, last_donation_date, age]
         });
-    res.json({ success: true, message: 'Blood donor registered successfully' });
-} catch (err) {
-    console.error("Add Donor Error:", err);
-    res.status(500).json({ error: err.message });
-}
+        res.json({ success: true, message: 'Blood donor registered successfully' });
+    } catch (err) {
+        console.error("Add Donor Error:", err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // Delete blood donor
