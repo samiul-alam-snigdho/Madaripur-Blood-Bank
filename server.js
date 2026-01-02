@@ -118,32 +118,34 @@ const requireAuth = (req, res, next) => {
                 args: [name, blood_group, phone, location, last_donation_date, age]
             });
             res.json({ success: true, message: 'Blood donor registered successfully' });
-        } catch (err) {
-            console.error("Add Donor Error:", err);
-            res.status(500).json({ error: err.message });
-        }
-    });
+            args: [name, blood_group, phone, location, last_donation_date, age]
+        });
+    res.json({ success: true, message: 'Blood donor registered successfully' });
+} catch (err) {
+    console.error("Add Donor Error:", err);
+    res.status(500).json({ error: err.message });
+}
+});
 
-    // Delete blood donor
-    app.delete('/api/blood-donors/:id', requireAuth, async (req, res) => {
-        const id = req.params.id;
-        try {
-            const result = await db.execute({
-                sql: "DELETE FROM blood_donors WHERE id = ?",
-                args: [id]
-            });
-            if (result.rowsAffected > 0) {
-                res.json({ success: true, message: "Deleted successfully" });
-            } else {
-                res.status(404).json({ success: false, message: "Donor not found" });
-            }
-        } catch (err) {
-            console.error("Delete Donor Error:", err);
-            res.status(500).json({ error: err.message });
+// Delete blood donor
+app.delete('/api/blood-donors/:id', requireAuth, async (req, res) => {
+    const id = req.params.id;
+    try {
+        const result = await db.execute({
+            sql: "DELETE FROM blood_donors WHERE id = ?",
+            args: [id]
+        });
+        if (result.rowsAffected > 0) {
+            res.json({ success: true, message: "Deleted successfully" });
+        } else {
+            res.status(404).json({ success: false, message: "Donor not found" });
         }
-    });
+    } catch (err) {
+        console.error("Delete Donor Error:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
 
-    app.listen(PORT, () => {
-        console.log(`Blood Donor Server running at http://localhost:${PORT}`);
-    });
+app.listen(PORT, () => {
+    console.log(`Blood Donor Server running at http://localhost:${PORT}`);
 });
